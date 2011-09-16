@@ -11,7 +11,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <junit.version>3.8.1</junit.version>
+        <junit.version>4.9</junit.version>
+        <mockito-all.version>1.8.1</mockito-all.version>
     </properties>
 
     <dependencies>
@@ -20,6 +21,11 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito-all.version}</version>
         </dependency>
     </dependencies>
 
