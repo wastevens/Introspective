@@ -10,14 +10,20 @@ public class FieldFixture {
     public static final A A1 = new A(A1_LABEL);
     public static final A A2 = new A(A2_LABEL);
 
-    public static final Field A1_FIELD = getLabelField(A1);
-    public static final Field A2_FIELD = getLabelField(A2);
+    public static final Field A1_FIELD = getFieldFromObject("label", A1);
+    public static final Field A2_FIELD = getFieldFromObject("label", A2);
 
-    private static Field getLabelField(A a) {
+    public static Field getFieldFromObject(String fieldName, Object object) {
+        Class<?> clazz = object.getClass();
+
         try {
-            return a.getClass().getDeclaredField("label");
-        } catch (Exception impossibleException) {
-            throw new Error("Can't get here.");
+            return clazz.getDeclaredField(fieldName);
+        } catch (Exception notDeclared) {
+            try {
+                return clazz.getField(fieldName);
+            } catch (Exception notInherited) {
+                return null;
+            }
         }
     }
 }

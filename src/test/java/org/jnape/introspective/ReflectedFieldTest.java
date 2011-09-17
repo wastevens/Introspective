@@ -4,14 +4,37 @@ import org.jnape.introspective.exception.FieldDoesNotExistOnObjectException;
 import org.junit.Test;
 import testsupport.FieldFixture;
 
+import java.lang.reflect.Field;
+
 import static junit.framework.Assert.*;
 import static testsupport.FieldFixture.*;
 
 public class ReflectedFieldTest {
 
+    private static final Field LABEL = getFieldFromObject("label", A1);
+    private static final Field INHERITED_FIELD = getFieldFromObject("inheritedField", A1);
+
     @Test
     public void shouldConstruct() {
-        new ReflectedField(A1_FIELD);
+        new ReflectedField(LABEL);
+    }
+
+    @Test
+    public void shouldGetField() {
+        ReflectedField reflectedField1 = new ReflectedField(LABEL);
+        assertEquals(LABEL, reflectedField1.getField());
+
+        ReflectedField reflectedField2 = new ReflectedField(INHERITED_FIELD);
+        assertEquals(INHERITED_FIELD, reflectedField2.getField());
+    }
+
+    @Test
+    public void shouldGetFieldName() {
+        ReflectedField reflectedField1 = new ReflectedField(LABEL);
+        assertEquals(LABEL.getName(), reflectedField1.getFieldName());
+
+        ReflectedField reflectedField2 = new ReflectedField(INHERITED_FIELD);
+        assertEquals(INHERITED_FIELD.getName(), reflectedField2.getFieldName());
     }
 
     @Test

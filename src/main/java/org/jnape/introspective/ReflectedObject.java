@@ -1,6 +1,8 @@
 package org.jnape.introspective;
 
+import org.jnape.dynamiccollection.DynamicList;
 import org.jnape.dynamiccollection.lambda.Function;
+import org.jnape.introspective.exception.FieldDoesNotExistOnObjectException;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -17,56 +19,52 @@ public class ReflectedObject<Subject> {
         this.reflectedClass = subject.getClass();
     }
 
-    public boolean hasField(String fieldName) {
-        for (Field field : getAllFields())
-            if (field.getName().equals(fieldName))
-                return true;
-
-        return false;
+    public List<ReflectedField> getPublicFields() {
+        return asReflectedFields(reflectedClass.getFields());
     }
 
-    @SuppressWarnings({"unchecked"})
-    public <Value> Value getValueOfField(final String fieldName) {
+    public List<ReflectedField> getDeclaredFields() {
+        return asReflectedFields(reflectedClass.getDeclaredFields());
+    }
+
+    public ReflectedField getField(final String fieldName) {
+        Function<ReflectedField, Boolean> fieldWithFieldName = new Function<ReflectedField, Boolean>() {
+            public Boolean apply(ReflectedField reflectedField) {
+                return reflectedField.getFieldName().equals(fieldName);
+            }
+        };
+
+        List<ReflectedField> field = allFields().collect(fieldWithFieldName);
+
+        if (field.isEmpty())
+            throw new FieldDoesNotExistOnObjectException(fieldName, subject);
+
+        return field.get(0);
+    }
+
+    public boolean hasField(String fieldName) {
         try {
-            return (Value) getField(fieldName).get(subject);
-        } catch (IllegalAccessException impossibleException) {
-            throw new Error("Can't get here.");
+            getField(fieldName);
+            return true;
+        } catch (FieldDoesNotExistOnObjectException noField) {
+            return false;
         }
     }
 
-    private Field getField(final String fieldName) {
-        if (!hasField(fieldName))
-            return null;
+    public Object getValueOfField(String fieldName) {
+        return getField(fieldName).getValueFrom(subject);
+    }
 
-        Function<Field, Boolean> desiredField = new Function<Field, Boolean>() {
-            public Boolean apply(Field field) {
-                return field.getName().equals(fieldName);
+    private List<ReflectedField> asReflectedFields(Field... fields) {
+        Function<Field, ReflectedField> intoReflectedFields = new Function<Field, ReflectedField>() {
+            public ReflectedField apply(Field field) {
+                return new ReflectedField(field);
             }
         };
-
-        return list(getAllFields()).collect(desiredField).get(0);
+        return list(fields).transform(intoReflectedFields);
     }
 
-    private List<Field> getAllFields() {
-        return list(getInheritedFields()).concat(getDeclaredFields());
-    }
-
-    private List<Field> getInheritedFields() {
-        return makeAccessible(reflectedClass.getFields());
-    }
-
-    private List<Field> getDeclaredFields() {
-        return makeAccessible(reflectedClass.getDeclaredFields());
-    }
-
-    private List<Field> makeAccessible(Field[] fields) {
-        Function<Field, Field> intoAccessibleFields = new Function<Field, Field>() {
-            public Field apply(Field field) {
-                field.setAccessible(true);
-                return field;
-            }
-        };
-
-        return list(fields).transform(intoAccessibleFields);
+    private DynamicList<ReflectedField> allFields() {
+        return list(getPublicFields()).concat(getDeclaredFields()).unique();
     }
 }

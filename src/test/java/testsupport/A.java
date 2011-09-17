@@ -1,14 +1,11 @@
 package testsupport;
 
-public class A {
+public class A extends Letter {
 
+    @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
     private final String label;
 
     public A(String label) {
         this.label = label;
-    }
-
-    public String getLabel() {
-        return label;
     }
 }

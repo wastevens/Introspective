@@ -15,6 +15,7 @@ public class FieldDoesNotExistOnObjectExceptionTest {
     @Test
     public void shouldConstruct() {
         new FieldDoesNotExistOnObjectException(A1_FIELD, new Object());
+        new FieldDoesNotExistOnObjectException(A1_FIELD.getName(), new Object());
     }
 
     @Test
@@ -22,8 +23,11 @@ public class FieldDoesNotExistOnObjectExceptionTest {
         Field field = A1_FIELD;
         Object object = "a string";
 
-        FieldDoesNotExistOnObjectException exception = new FieldDoesNotExistOnObjectException(field, object);
-        assertEquals("Field <label> does not exist on <java.lang.String>", exception.getMessage());
+        FieldDoesNotExistOnObjectException exception1 = new FieldDoesNotExistOnObjectException(field, object);
+        assertEquals("Field <label> does not exist on <java.lang.String>", exception1.getMessage());
+
+        FieldDoesNotExistOnObjectException exception2 = new FieldDoesNotExistOnObjectException(field.getName(), object);
+        assertEquals("Field <label> does not exist on <java.lang.String>", exception2.getMessage());
     }
 
     @Test

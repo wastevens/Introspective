@@ -13,6 +13,14 @@ public class ReflectedField {
         this.field = field;
     }
 
+    public Field getField() {
+        return field;
+    }
+
+    public String getFieldName() {
+        return field.getName();
+    }
+
     public boolean existsOn(Object object) {
         return field.equals(getField(object));
     }
