@@ -1,4 +1,4 @@
-package org.jnape;
+package org.jnape.introspective;
 
 import org.jnape.dynamiccollection.lambda.Function;
 
