@@ -5,9 +5,11 @@ import org.junit.Test;
 import testsupport.pojo.A;
 import testsupport.pojo.Letter;
 
+import java.util.ArrayList;
+
 import static junit.framework.Assert.*;
-import static testsupport.fixture.FieldFixture.*;
 import static testsupport.assertion.ReflectionAssert.assertReflectionEquals;
+import static testsupport.fixture.FieldFixture.*;
 
 public class ReflectedClassTest {
 
@@ -35,8 +37,11 @@ public class ReflectedClassTest {
 
     @Test
     public void shouldGetInheritedFields() {
-        ReflectedClass reflectedClass = new ReflectedClass(A.class);
-        assertReflectionEquals(A_INHERITED_FIELDS, reflectedClass.getInheritedFields());
+        ReflectedClass reflectedClass1 = new ReflectedClass(A.class);
+        assertReflectionEquals(A_INHERITED_FIELDS, reflectedClass1.getInheritedFields());
+
+        ReflectedClass reflectedClass2 = new ReflectedClass(Object.class);
+        assertReflectionEquals(new ArrayList<Object>(), reflectedClass2.getInheritedFields());
     }
 
     @Test

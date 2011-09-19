@@ -32,7 +32,7 @@ public class ReflectedClass {
     public List<ReflectedField> getInheritedFields() {
         List<ReflectedField> inheritedFields = new ArrayList<ReflectedField>();
 
-        for (Class<?> superClass = subject; superClass != Object.class; superClass = superClass.getSuperclass()) {
+        for (Class<?> superClass = subject.getSuperclass(); superClass != null; superClass = superClass.getSuperclass()) {
             ReflectedClass reflectedSuperClass = new ReflectedClass(superClass);
             inheritedFields.addAll(getInheritableFields(reflectedSuperClass));
         }
