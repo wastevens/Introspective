@@ -1,50 +1,36 @@
 package org.jnape.introspective;
 
-import org.jnape.introspective.exception.FieldDoesNotExistOnObjectException;
+import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 
 import java.lang.reflect.Field;
 
 public class ReflectedField {
 
-    private final Field field;
+    private final Field subject;
 
-    public ReflectedField(Field field) {
-        field.setAccessible(true);
-        this.field = field;
+    public ReflectedField(Field subject) {
+        subject.setAccessible(true);
+        this.subject = subject;
     }
 
-    public Field getField() {
-        return field;
-    }
-
-    public String getFieldName() {
-        return field.getName();
+    public Field getSubject() {
+        return subject;
     }
 
     public boolean existsOn(Object object) {
-        return field.equals(getField(object));
+        Class<?> clazz = object.getClass();
+        return new ReflectedClass(clazz).hasField(subject);
     }
 
     public Object getValueFrom(Object object) {
         try {
-            return field.get(object);
+            return subject.get(object);
         } catch (Exception e) {
-            throw new FieldDoesNotExistOnObjectException(field, object);
+            throw new FieldDoesNotExistOnClassException(subject, object.getClass());
         }
     }
 
-    private Field getField(Object object) {
-        Class<?> clazz = object.getClass();
-        String fieldName = field.getName();
-
-        try {
-            return clazz.getDeclaredField(fieldName);
-        } catch (Exception notDeclared) {
-            try {
-                return clazz.getField(fieldName);
-            } catch (Exception notInherited) {
-                return null;
-            }
-        }
+    public FieldVisibility getVisibility() {
+        return FieldVisibility.forField(subject);
     }
 }

@@ -1,4 +1,4 @@
-package testsupport;
+package testsupport.pojo;
 
 public class A extends Letter {
 

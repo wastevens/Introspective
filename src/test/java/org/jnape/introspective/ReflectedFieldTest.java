@@ -1,62 +1,63 @@
 package org.jnape.introspective;
 
-import org.jnape.introspective.exception.FieldDoesNotExistOnObjectException;
+import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 import org.junit.Test;
-import testsupport.FieldFixture;
-
-import java.lang.reflect.Field;
 
 import static junit.framework.Assert.*;
-import static testsupport.FieldFixture.*;
+import static org.jnape.introspective.FieldVisibility.*;
+import static testsupport.fixture.FieldFixture.*;
 
 public class ReflectedFieldTest {
 
-    private static final Field LABEL = getFieldFromObject("label", A1);
-    private static final Field INHERITED_FIELD = getFieldFromObject("inheritedField", A1);
-
     @Test
     public void shouldConstruct() {
-        new ReflectedField(LABEL);
+        new ReflectedField(LABEL_FIELD);
     }
 
     @Test
-    public void shouldGetField() {
-        ReflectedField reflectedField1 = new ReflectedField(LABEL);
-        assertEquals(LABEL, reflectedField1.getField());
+    public void shouldGetSubject() {
+        ReflectedField reflectedField1 = new ReflectedField(LABEL_FIELD);
+        assertEquals(LABEL_FIELD, reflectedField1.getSubject());
 
-        ReflectedField reflectedField2 = new ReflectedField(INHERITED_FIELD);
-        assertEquals(INHERITED_FIELD, reflectedField2.getField());
-    }
-
-    @Test
-    public void shouldGetFieldName() {
-        ReflectedField reflectedField1 = new ReflectedField(LABEL);
-        assertEquals(LABEL.getName(), reflectedField1.getFieldName());
-
-        ReflectedField reflectedField2 = new ReflectedField(INHERITED_FIELD);
-        assertEquals(INHERITED_FIELD.getName(), reflectedField2.getFieldName());
+        ReflectedField reflectedField2 = new ReflectedField(PUBLIC_LETTER_FIELD);
+        assertEquals(PUBLIC_LETTER_FIELD, reflectedField2.getSubject());
     }
 
     @Test
     public void shouldKnowIfExistsOnObject() {
-        ReflectedField reflectedField = new ReflectedField(A1_FIELD);
+        ReflectedField reflectedField = new ReflectedField(LABEL_FIELD);
 
+        assertTrue(reflectedField.existsOn(A1));
         assertTrue(reflectedField.existsOn(A2));
         assertFalse(reflectedField.existsOn(new Object()));
     }
 
     @Test
-    public void shouldGetValueFromObjectWithSameField() {
-        ReflectedField reflectedField1 = new ReflectedField(A1_FIELD);
-        assertEquals(FieldFixture.A1_LABEL, reflectedField1.getValueFrom(A1));
+    public void shouldGetValueFromObject() {
+        ReflectedField reflectedField = new ReflectedField(LABEL_FIELD);
 
-        ReflectedField reflectedField2 = new ReflectedField(A2_FIELD);
-        assertEquals(A2_LABEL, reflectedField2.getValueFrom(A2));
+        assertEquals(A1_LABEL, reflectedField.getValueFrom(A1));
+        assertEquals(A2_LABEL, reflectedField.getValueFrom(A2));
     }
 
-    @Test(expected = FieldDoesNotExistOnObjectException.class)
+    @Test(expected = FieldDoesNotExistOnClassException.class)
     public void shouldThrowExceptionWhenGetValueFromInvalidObject() {
-        ReflectedField reflectedField = new ReflectedField(A1_FIELD);
+        ReflectedField reflectedField = new ReflectedField(LABEL_FIELD);
         reflectedField.getValueFrom("a string, which does not have a label field");
+    }
+
+    @Test
+    public void shouldKnowVisibility() {
+        ReflectedField publicReflectedField = new ReflectedField(PUBLIC_LETTER_FIELD);
+        assertEquals(PUBLIC, publicReflectedField.getVisibility());
+
+        ReflectedField protectedReflectedField = new ReflectedField(PROTECTED_LETTER_FIELD);
+        assertEquals(PROTECTED, protectedReflectedField.getVisibility());
+
+        ReflectedField privateReflectedField = new ReflectedField(PRIVATE_LETTER_FIELD);
+        assertEquals(PRIVATE, privateReflectedField.getVisibility());
+
+        ReflectedField packagePrivateReflectedField = new ReflectedField(PACKAGE_PRIVATE_LETTER_FIELD);
+        assertEquals(PACKAGE_PRIVATE, packagePrivateReflectedField.getVisibility());
     }
 }

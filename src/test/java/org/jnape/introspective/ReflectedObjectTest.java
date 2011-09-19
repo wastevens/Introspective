@@ -1,76 +1,53 @@
 package org.jnape.introspective;
 
-import org.jnape.introspective.exception.FieldDoesNotExistOnObjectException;
+import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 import org.junit.Test;
-import testsupport.A;
-import testsupport.ReflectedFieldAssert;
+import testsupport.pojo.A;
 
-import java.util.List;
-
-import static junit.framework.Assert.*;
-import static org.jnape.dynamiccollection.DynamicCollectionFactory.list;
-import static testsupport.FieldFixture.*;
+import static junit.framework.Assert.assertEquals;
+import static testsupport.fixture.FieldFixture.*;
+import static testsupport.assertion.ReflectionAssert.assertReflectionEquals;
 
 public class ReflectedObjectTest {
 
     @Test
     public void shouldConstruct() {
-        new ReflectedObject<A>(A1);
+        new ReflectedObject(A1);
     }
 
     @Test
-    public void shouldGetPublicFields() {
-        ReflectedObject<A> reflectedObject = new ReflectedObject<A>(A1);
+    public void shouldGetSubject() {
+        A subject1 = A1;
+        ReflectedObject reflectedObject1 = new ReflectedObject(subject1);
+        assertEquals(subject1, reflectedObject1.getSubject());
 
-        List<ReflectedField> expected = list(new ReflectedField(getFieldFromObject("inheritedField", A1)));
-        ReflectedFieldAssert.assertEquals(expected, reflectedObject.getPublicFields());
+        A subject2 = A2;
+        ReflectedObject reflectedObject2 = new ReflectedObject(subject2);
+        assertEquals(subject2, reflectedObject2.getSubject());
     }
 
     @Test
-    public void shouldGetDeclaredFields() {
-        ReflectedObject<A> reflectedObject = new ReflectedObject<A>(A1);
+    public void shouldGetReflectedClass() {
+        String subject1 = "a string";
+        ReflectedObject reflectedObject1 = new ReflectedObject(subject1);
+        assertReflectionEquals(new ReflectedClass(String.class), reflectedObject1.getReflectedClass());
 
-        List<ReflectedField> expected = list(new ReflectedField(getFieldFromObject("label", A1)));
-        ReflectedFieldAssert.assertEquals(expected, reflectedObject.getDeclaredFields());
-    }
-
-    @Test
-    public void shouldGetField() {
-        ReflectedObject<A> reflectedObject = new ReflectedObject<A>(A1);
-        String labelFieldName = "label";
-
-        ReflectedField expected = new ReflectedField(getFieldFromObject(labelFieldName, A1));
-
-        ReflectedFieldAssert.assertEquals(expected, reflectedObject.getField(labelFieldName));
-    }
-
-    @Test(expected = FieldDoesNotExistOnObjectException.class)
-    public void shouldThrowExceptionIfGetInvalidField() {
-        new ReflectedObject<A>(A1).getField("invalid field");
-    }
-
-    @Test
-    public void shouldKnowIfHasField() {
-        ReflectedObject<A> reflectedObject = new ReflectedObject<A>(A1);
-
-        assertTrue(reflectedObject.hasField("label"));
-        assertTrue(reflectedObject.hasField("inheritedField"));
-        assertFalse(reflectedObject.hasField("not a field"));
+        Integer subject2 = 1;
+        ReflectedObject reflectedObject2 = new ReflectedObject(subject2);
+        assertReflectionEquals(new ReflectedClass(Integer.class), reflectedObject2.getReflectedClass());
     }
 
     @Test
     public void shouldGetValueOfField() {
-        String fieldName = "label";
+        ReflectedObject reflectedObject1 = new ReflectedObject(A1);
+        assertEquals(A1_LABEL, reflectedObject1.getValueOfField(LABEL_FIELD_NAME));
 
-        ReflectedObject<A> reflectedObject1 = new ReflectedObject<A>(A1);
-        assertEquals(A1_LABEL, reflectedObject1.getValueOfField(fieldName));
-
-        ReflectedObject<A> reflectedObject2 = new ReflectedObject<A>(A2);
-        assertEquals(A2_LABEL, reflectedObject2.getValueOfField(fieldName));
+        ReflectedObject reflectedObject2 = new ReflectedObject(A2);
+        assertEquals(A2_LABEL, reflectedObject2.getValueOfField(LABEL_FIELD_NAME));
     }
 
-    @Test(expected = FieldDoesNotExistOnObjectException.class)
-    public void shouldThrowExceptionIfGetValueOfInvalidField() {
-        new ReflectedObject<A>(A1).getValueOfField("invalid field");
+    @Test(expected = FieldDoesNotExistOnClassException.class)
+    public void shouldThrowExceptionWhenGetValueOfInvalidField() {
+        new ReflectedObject(A1).getValueOfField("this field can't possibly exist");
     }
 }
