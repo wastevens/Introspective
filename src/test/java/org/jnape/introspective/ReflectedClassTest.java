@@ -16,12 +16,13 @@ public class ReflectedClassTest {
     @Test
     public void shouldConstruct() {
         new ReflectedClass(String.class);
+        new ReflectedClass("a string");
     }
 
     @Test
     public void shouldGetSubject() {
         Class<String> subject1 = String.class;
-        ReflectedClass reflectedClass1 = new ReflectedClass(subject1);
+        ReflectedClass reflectedClass1 = new ReflectedClass("Some string");
         assertEquals(subject1, reflectedClass1.getSubject());
 
         Class<Number> subject2 = Number.class;

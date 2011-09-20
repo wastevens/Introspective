@@ -17,6 +17,10 @@ public class ReflectedClass {
         this.subject = subject;
     }
 
+    public <Subject> ReflectedClass(Subject subjectSource) {
+        subject = subjectSource.getClass();
+    }
+
     public Class<?> getSubject() {
         return subject;
     }
