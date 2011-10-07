@@ -3,6 +3,7 @@ package org.jnape.introspective;
 import org.jnape.dynamiccollection.lambda.Function;
 import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,5 +87,13 @@ public class ReflectedClass {
         }
 
         return inheritableFields;
+    }
+
+    public Boolean hasAnnotation(Class<? extends Annotation> annotationClass) {
+        return subject.isAnnotationPresent(annotationClass);
+    }
+
+    public <AnnotationType extends Annotation> AnnotationType getAnnotation(Class<AnnotationType> annotationTypeClass) {
+        return subject.getAnnotation(annotationTypeClass);
     }
 }

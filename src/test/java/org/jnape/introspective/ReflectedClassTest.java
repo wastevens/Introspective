@@ -2,8 +2,7 @@ package org.jnape.introspective;
 
 import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 import org.junit.Test;
-import testsupport.pojo.A;
-import testsupport.pojo.Letter;
+import testsupport.pojo.*;
 
 import java.util.ArrayList;
 
@@ -86,5 +85,14 @@ public class ReflectedClassTest {
         assertTrue(reflectedLetter.hasField(PROTECTED_LETTER_FIELD));
         assertTrue(reflectedLetter.hasField(PACKAGE_PRIVATE_LETTER_FIELD));
         assertTrue(reflectedLetter.hasField(PRIVATE_LETTER_FIELD));
+    }
+
+    @Test
+    public void shouldKnowIfHasAnnotation() {
+        ReflectedClass reflectedA = new ReflectedClass(A.class);
+
+        assertTrue(reflectedA.hasAnnotation(Foo.class));
+        assertTrue(reflectedA.hasAnnotation(Bar.class));
+        assertFalse(reflectedA.hasAnnotation(Unused.class));
     }
 }

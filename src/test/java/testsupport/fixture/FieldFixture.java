@@ -12,15 +12,18 @@ import static org.jnape.dynamiccollection.DynamicCollectionFactory.list;
 public class FieldFixture {
 
     public static final String LABEL_FIELD_NAME = "label";
+    public static final String ANNOTATED_FIELD_NAME = "annotatedField";
 
     public static final Field LABEL_FIELD = getFieldFromClass(LABEL_FIELD_NAME, A.class);
+    public static final Field ANNOTATED_FIELD = getFieldFromClass(ANNOTATED_FIELD_NAME, A.class);
     public static final Field PUBLIC_LETTER_FIELD = getFieldFromClass("publicLetterField", Letter.class);
     public static final Field PROTECTED_LETTER_FIELD = getFieldFromClass("protectedLetterField", Letter.class);
     public static final Field PACKAGE_PRIVATE_LETTER_FIELD = getFieldFromClass("packagePrivateLetterField", Letter.class);
     public static final Field PRIVATE_LETTER_FIELD = getFieldFromClass("privateLetterField", Letter.class);
 
     public static final List<ReflectedField> A_DECLARED_FIELDS = list(
-            new ReflectedField(LABEL_FIELD)
+            new ReflectedField(LABEL_FIELD),
+            new ReflectedField(ANNOTATED_FIELD)
     );
 
     public static final List<ReflectedField> A_INHERITED_FIELDS = list(
