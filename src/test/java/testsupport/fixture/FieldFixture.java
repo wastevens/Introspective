@@ -5,6 +5,7 @@ import testsupport.pojo.A;
 import testsupport.pojo.Letter;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.jnape.dynamiccollection.DynamicCollectionFactory.list;

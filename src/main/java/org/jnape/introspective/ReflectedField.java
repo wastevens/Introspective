@@ -4,7 +4,7 @@ import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 
 import java.lang.reflect.Field;
 
-public class ReflectedField {
+public class ReflectedField implements ReflectedAccessible<Field> {
 
     private final Field subject;
 
@@ -30,7 +30,7 @@ public class ReflectedField {
         }
     }
 
-    public FieldVisibility getVisibility() {
-        return FieldVisibility.forField(subject);
+    public Visibility getVisibility() {
+        return Visibility.forMember(subject);
     }
 }

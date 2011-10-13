@@ -1,6 +1,7 @@
 package org.jnape.introspective;
 
 import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
+import org.jnape.introspective.exception.MethodDoesNotExistOnClassException;
 import org.junit.Test;
 import testsupport.pojo.*;
 
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import static junit.framework.Assert.*;
 import static testsupport.assertion.ReflectionAssert.assertReflectionEquals;
 import static testsupport.fixture.FieldFixture.*;
+import static testsupport.fixture.MethodFixture.*;
 
 public class ReflectedClassTest {
 
@@ -22,11 +24,11 @@ public class ReflectedClassTest {
     public void shouldGetSubject() {
         Class<String> subject1 = String.class;
         ReflectedClass reflectedClass1 = new ReflectedClass("Some string");
-        assertEquals(subject1, reflectedClass1.getSubject());
+        assertEquals(subject1, reflectedClass1.getUnderlyingClass());
 
         Class<Number> subject2 = Number.class;
         ReflectedClass reflectedClass2 = new ReflectedClass(subject2);
-        assertEquals(subject2, reflectedClass2.getSubject());
+        assertEquals(subject2, reflectedClass2.getUnderlyingClass());
     }
 
     @Test
@@ -95,4 +97,65 @@ public class ReflectedClassTest {
         assertTrue(reflectedA.hasAnnotation(Bar.class));
         assertFalse(reflectedA.hasAnnotation(Unused.class));
     }
+
+    @Test
+    public void shouldKnowIfHasMethod() {
+        ReflectedClass reflectedA = new ReflectedClass(A.class);
+
+        assertTrue(reflectedA.hasMethod(METHOD_WITHOUT_PARAMETERS_NAME));
+        assertTrue(reflectedA.hasMethod(METHOD_WITH_PARAMETERS_NAME, METHOD_WITH_PARAMETERS_PARAMETER_ARRAY));
+        assertFalse(reflectedA.hasMethod(METHOD_WITH_PARAMETERS_NAME));
+        assertFalse(reflectedA.hasMethod(METHOD_WITHOUT_PARAMETERS_NAME, METHOD_WITH_PARAMETERS_PARAMETER_ARRAY));
+
+        assertTrue(reflectedA.hasMethod(PUBLIC_METHOD_NAME));
+        assertTrue(reflectedA.hasMethod(PROTECTED_METHOD_NAME));
+        assertTrue(reflectedA.hasMethod(PACKAGE_PRIVATE_METHOD_NAME));
+        assertFalse(reflectedA.hasMethod(PRIVATE_METHOD_NAME));
+
+        ReflectedClass reflectedLetter = new ReflectedClass(Letter.class);
+        assertTrue(reflectedLetter.hasMethod(PUBLIC_METHOD_NAME));
+        assertTrue(reflectedLetter.hasMethod(PROTECTED_METHOD_NAME));
+        assertTrue(reflectedLetter.hasMethod(PACKAGE_PRIVATE_METHOD_NAME));
+        assertTrue(reflectedLetter.hasMethod(PRIVATE_METHOD_NAME));
+    }
+
+    @Test
+    public void shouldGetDeclaredMethods() {
+        ReflectedClass reflectedClass = new ReflectedClass(A.class);
+        assertReflectionEquals(A_DECLARED_METHODS, reflectedClass.getDeclaredMethods());
+    }
+
+    @Test
+    public void shouldGetInheritedMethods() {
+        ReflectedClass reflectedClass1 = new ReflectedClass(A.class);
+        assertReflectionEquals(A_INHERITED_METHODS, reflectedClass1.getInheritedMethods());
+
+        ReflectedClass reflectedClass2 = new ReflectedClass(Object.class);
+        assertReflectionEquals(new ArrayList<ReflectedMethod>(), reflectedClass2.getInheritedMethods());
+    }
+
+    @Test
+    public void shouldGetAllMethods() {
+        ReflectedClass reflectedClass = new ReflectedClass(A.class);
+        assertReflectionEquals(A_ALL_METHODS, reflectedClass.getAllMethods());
+    }
+
+    @Test
+    public void shouldGetGivenMethod() {
+        ReflectedClass reflectedClass = new ReflectedClass(A.class);
+        assertReflectionEquals(new ReflectedMethod(METHOD_WITHOUT_PARAMETERS), reflectedClass.getMethod(METHOD_WITHOUT_PARAMETERS_NAME));
+        assertReflectionEquals(new ReflectedMethod(METHOD_WITH_PARAMETERS), reflectedClass.getMethod(METHOD_WITH_PARAMETERS_NAME, METHOD_WITH_PARAMETERS_PARAMETER_ARRAY));
+
+        ReflectedClass reflectedLetter = new ReflectedClass(Letter.class);
+        assertReflectionEquals(new ReflectedMethod(PUBLIC_METHOD), reflectedLetter.getMethod(PUBLIC_METHOD_NAME));
+        assertReflectionEquals(new ReflectedMethod(PROTECTED_METHOD), reflectedLetter.getMethod(PROTECTED_METHOD_NAME));
+        assertReflectionEquals(new ReflectedMethod(PACKAGE_PRIVATE_METHOD), reflectedLetter.getMethod(PACKAGE_PRIVATE_METHOD_NAME));
+        assertReflectionEquals(new ReflectedMethod(PRIVATE_METHOD), reflectedLetter.getMethod(PRIVATE_METHOD_NAME));
+    }
+
+    @Test(expected = MethodDoesNotExistOnClassException.class)
+    public void shouldThrowExceptionWhenGetInvalidMethod() {
+        new ReflectedClass(A.class).getMethod(PRIVATE_METHOD_NAME);
+    }
+
 }

@@ -4,7 +4,7 @@ import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
 import org.junit.Test;
 
 import static junit.framework.Assert.*;
-import static org.jnape.introspective.FieldVisibility.*;
+import static org.jnape.introspective.Visibility.*;
 import static testsupport.fixture.FieldFixture.*;
 
 public class ReflectedFieldTest {

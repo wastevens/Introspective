@@ -1,6 +1,7 @@
 package testsupport.assertion;
 
 import junit.framework.Assert;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class ReflectionAssert {
 
     public static void assertReflectionEquals(Object expected, Object actual) {
         assertTrue(
-                "Expected <" + expected + "> to be reflectively equal to <" + actual + ">, but it wasn't.",
+                "Expected <" + ReflectionToStringBuilder.reflectionToString(expected) + "> to be reflectively equal to <" + ReflectionToStringBuilder.reflectionToString(actual) + ">, but it wasn't.",
                 reflectionEquals(expected, actual)
         );
     }

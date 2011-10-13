@@ -2,9 +2,12 @@ package org.jnape.introspective;
 
 import org.jnape.dynamiccollection.lambda.Function;
 import org.jnape.introspective.exception.FieldDoesNotExistOnClassException;
+import org.jnape.introspective.exception.MethodDoesNotExistOnClassException;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,22 +15,38 @@ import static org.jnape.dynamiccollection.DynamicCollectionFactory.list;
 
 public class ReflectedClass {
 
-    private final Class<?> subject;
+    private final Class<?> underlyingClass;
 
-    public ReflectedClass(Class<?> subject) {
-        this.subject = subject;
+    public ReflectedClass(Class<?> underlyingClass) {
+        this.underlyingClass = underlyingClass;
     }
 
     public <Subject> ReflectedClass(Subject subjectSource) {
-        subject = subjectSource.getClass();
+        underlyingClass = subjectSource.getClass();
     }
 
-    public Class<?> getSubject() {
-        return subject;
+    public Class<?> getUnderlyingClass() {
+        return underlyingClass;
+    }
+
+    private static final DeclaredAccessibleFetcher<Field, ReflectedField> DECLARED_FIELD_FETCHER = new DeclaredAccessibleFetcher<Field, ReflectedField>() {
+        public List<ReflectedField> getAccessibles(ReflectedClass reflectedClass) {
+            return reflectedClass.getDeclaredFields();
+        }
+    };
+
+    private static final DeclaredAccessibleFetcher<Method, ReflectedMethod> DECLARED_METHOD_FETCHER = new DeclaredAccessibleFetcher<Method, ReflectedMethod>() {
+        public List<ReflectedMethod> getAccessibles(ReflectedClass reflectedClass) {
+            return reflectedClass.getDeclaredMethods();
+        }
+    };
+
+    public List<ReflectedField> getAllFields() {
+        return list(getDeclaredFields()).concat(getInheritedFields());
     }
 
     public List<ReflectedField> getDeclaredFields() {
-        return list(subject.getDeclaredFields()).transform(new Function<Field, ReflectedField>() {
+        return list(this.getUnderlyingClass().getDeclaredFields()).transform(new Function<Field, ReflectedField>() {
             public ReflectedField apply(Field field) {
                 return new ReflectedField(field);
             }
@@ -35,18 +54,7 @@ public class ReflectedClass {
     }
 
     public List<ReflectedField> getInheritedFields() {
-        List<ReflectedField> inheritedFields = new ArrayList<ReflectedField>();
-
-        for (Class<?> superClass = subject.getSuperclass(); superClass != null; superClass = superClass.getSuperclass()) {
-            ReflectedClass reflectedSuperClass = new ReflectedClass(superClass);
-            inheritedFields.addAll(getInheritableFields(reflectedSuperClass));
-        }
-
-        return inheritedFields;
-    }
-
-    public List<ReflectedField> getAllFields() {
-        return list(getDeclaredFields()).concat(getInheritedFields());
+        return getInheritedAccessibleObjects(DECLARED_FIELD_FETCHER);
     }
 
     public ReflectedField getField(String fieldName) throws FieldDoesNotExistOnClassException {
@@ -54,7 +62,7 @@ public class ReflectedClass {
             if (reflectedField.getSubject().getName().equals(fieldName))
                 return reflectedField;
 
-        throw new FieldDoesNotExistOnClassException(fieldName, subject);
+        throw new FieldDoesNotExistOnClassException(fieldName, underlyingClass);
     }
 
     public boolean hasField(Field field) {
@@ -65,35 +73,82 @@ public class ReflectedClass {
         }
     }
 
-    private List<ReflectedField> getInheritableFields(ReflectedClass reflectedClass) {
-        List<ReflectedField> inheritableFields = new ArrayList<ReflectedField>();
+    public ReflectedMethod getMethod(String methodName, Class<?>... parameters) {
+        for (ReflectedMethod reflectedMethod : getAllMethods())
+            if (reflectedMethod.getSubject().getName().equals(methodName))
+                if (list(parameters).equals(list(reflectedMethod.getParameterTypes())))
+                    return reflectedMethod;
 
-        Package subjectPackage = subject.getPackage();
-        Package reflectedClassPackage = reflectedClass.subject.getPackage();
+        throw new MethodDoesNotExistOnClassException(methodName, underlyingClass);
+    }
 
-        for (ReflectedField reflectedField : reflectedClass.getDeclaredFields()) {
-            switch (reflectedField.getVisibility()) {
+    public List<ReflectedMethod> getAllMethods() {
+        return list(getDeclaredMethods()).concat(getInheritedMethods());
+    }
+
+    public List<ReflectedMethod> getDeclaredMethods() {
+        return list(this.getUnderlyingClass().getDeclaredMethods()).transform(new Function<Method, ReflectedMethod>() {
+            public ReflectedMethod apply(Method method) {
+                return new ReflectedMethod(method);
+            }
+        });
+    }
+
+    public List<ReflectedMethod> getInheritedMethods() {
+        return getInheritedAccessibleObjects(DECLARED_METHOD_FETCHER);
+    }
+
+    public Boolean hasMethod(String methodName, Class<?>... parameters) {
+        for (ReflectedMethod reflectedMethod : getAllMethods())
+            if (reflectedMethod.getSubject().getName().equals(methodName))
+                if (list(parameters).equals(list(reflectedMethod.getParameterTypes())))
+                    return true;
+
+        return false;
+    }
+
+    public Boolean hasAnnotation(Class<? extends Annotation> annotationClass) {
+        return underlyingClass.isAnnotationPresent(annotationClass);
+    }
+
+    private <Target extends AccessibleObject, ReflectedTarget extends ReflectedAccessible<Target>> List<ReflectedTarget>
+    getInheritedAccessibleObjects(DeclaredAccessibleFetcher<Target, ReflectedTarget> fetcher) {
+        List<ReflectedTarget> inheritedFields = new ArrayList<ReflectedTarget>();
+
+        for (Class<?> superClass = underlyingClass.getSuperclass(); superClass != null; superClass = superClass.getSuperclass()) {
+            ReflectedClass reflectedSuperClass = new ReflectedClass(superClass);
+            inheritedFields.addAll(getInheritableAccessibleObjects(reflectedSuperClass, fetcher));
+        }
+
+        return inheritedFields;
+    }
+
+
+    private <Target extends AccessibleObject, ReflectedTarget extends ReflectedAccessible<Target>>
+    List<ReflectedTarget> getInheritableAccessibleObjects(ReflectedClass reflectedClass, DeclaredAccessibleFetcher<Target, ReflectedTarget> fetcher) {
+        List<ReflectedTarget> inheritables = new ArrayList<ReflectedTarget>();
+
+        Package subjectPackage = underlyingClass.getPackage();
+        Package reflectedClassPackage = reflectedClass.underlyingClass.getPackage();
+
+        for (ReflectedTarget reflectedAccessible : fetcher.getAccessibles(reflectedClass)) {
+            switch (reflectedAccessible.getVisibility()) {
                 case PUBLIC:
                 case PROTECTED: {
-                    inheritableFields.add(reflectedField);
+                    inheritables.add(reflectedAccessible);
                     break;
                 }
 
                 case PACKAGE_PRIVATE: {
                     if (subjectPackage.equals(reflectedClassPackage))
-                        inheritableFields.add(reflectedField);
+                        inheritables.add(reflectedAccessible);
                 }
             }
         }
-
-        return inheritableFields;
+        return inheritables;
     }
 
-    public Boolean hasAnnotation(Class<? extends Annotation> annotationClass) {
-        return subject.isAnnotationPresent(annotationClass);
-    }
-
-    public <AnnotationType extends Annotation> AnnotationType getAnnotation(Class<AnnotationType> annotationTypeClass) {
-        return subject.getAnnotation(annotationTypeClass);
+    private static interface DeclaredAccessibleFetcher<Target extends AccessibleObject, ReflectedTarget extends ReflectedAccessible<Target>> {
+        public List<ReflectedTarget> getAccessibles(ReflectedClass reflectedClass);
     }
 }
